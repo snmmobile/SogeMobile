@@ -8,8 +8,9 @@ import static org.junit.Assert.assertTrue;
 public final class MobileAppConfigTest {
     @Test
     public void detectsOptionalAndRequiredUpdatesSeparately() {
-        MobileAppConfig optional = updateConfig(3, 1, false);
-        MobileAppConfig required = updateConfig(3, 3, true);
+        int nextVersion = BuildConfig.VERSION_CODE + 1;
+        MobileAppConfig optional = updateConfig(nextVersion, 1, false);
+        MobileAppConfig required = updateConfig(nextVersion, nextVersion, true);
 
         assertTrue(optional.hasUpdate());
         assertFalse(optional.requiresUpdate());

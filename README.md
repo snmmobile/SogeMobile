@@ -1,6 +1,6 @@
 # SogeMobile
 
-A small Android app with a homepage button that opens Sogebanking in an integrated browser. Version 1.1 loads a signed remote configuration from the portfolio administration service. When the authenticated account dashboard is detected, the administrator can independently enable **view-only mode** and **sensitive-function blocking**:
+A small Android app with a homepage button that opens Sogebanking in an integrated browser. Version 1.2 loads a signed remote configuration from the portfolio administration service. When the authenticated account dashboard is detected, the administrator can independently enable **view-only mode** and **sensitive-function blocking**:
 
 The public Android application ID is `com.snmmobile.sogemobile`.
 
@@ -22,7 +22,7 @@ buildConfigField "String", "REDIRECT_HOST", '"www2.sogebanking.com"'
 
 `START_URL` is opened by the homepage button. Dashboard detection runs only on the configured Sogebanking HTTPS hosts (including `www`, `www2`, and the `/sogebanking/` routes). The authenticated account-list view is identified by a combination of permanent page labels (`Comptes de dépôt`, `Se déconnecter`, and `Bienvenue`), without reading or storing any customer name, account number, balance, date, or other personal data from the page.
 
-The login journey remains interactive. As soon as the permanent dashboard labels appear, the page installs whichever protections are enabled before notifying Android. Read-only mode blocks general taps, forms, and navigation while preserving vertical scrolling. Sensitive-function blocking separately hides account-expansion, transfer-option, and account-detail controls and replaces `load_account(...)` and `load_content(...)` with no-op functions. The exact `pages_personal/account_details.html` document is intercepted only while sensitive-function blocking is active.
+The login journey remains interactive. As soon as the permanent dashboard labels appear, the page installs whichever protections are enabled before notifying Android. Read-only mode blocks general taps, forms, and navigation while preserving vertical scrolling. Sensitive-function blocking allows the site's `load_account(...)` function and its account-expansion controls to run, while transfer/account-detail controls and `load_content(...)` remain disabled. The exact `pages_personal/account_details.html` document is intercepted before its response or a main-frame navigation can render while sensitive-function blocking is active.
 
 ## Remote administration and privacy
 
