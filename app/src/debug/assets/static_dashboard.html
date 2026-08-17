@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SogeMobile static dashboard test</title>
+    <style>
+        :root { color-scheme: light; font-family: Arial, sans-serif; color: #17324d; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #f3f6f9; }
+        .test-banner { padding: 10px 16px; background: #fff3cd; color: #684f00; font-weight: 700; text-align: center; }
+        #head_wrapper { background: #fff; border-bottom: 3px solid #034b9e; }
+        #top_div_menu { padding: 10px 18px 0; text-align: right; }
+        .logout a, nav a { color: #034b9e; text-decoration: none; }
+        #top_div_menu2 { padding: 10px 18px 14px; }
+        .brand { color: #034b9e; font-size: 24px; font-weight: 800; }
+        nav ul { display: flex; gap: 10px; padding: 12px 0 0; margin: 0; list-style: none; flex-wrap: wrap; }
+        nav a { display: block; padding: 9px 12px; border: 1px solid #aac2db; border-radius: 7px; background: #f9fbfd; }
+        .welcome_info { padding: 10px 18px; background: #eaf2fa; text-align: right; font-size: 13px; }
+        #main_container { max-width: 980px; margin: 18px auto; padding: 0 14px 70px; }
+        .test-panel { margin-bottom: 18px; padding: 15px; background: #fff; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,.07); }
+        .test-panel h2 { margin: 0 0 10px; color: #034b9e; font-size: 18px; }
+        .test-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 8px; }
+        .result { padding: 9px; border-radius: 7px; background: #eef2f6; font-size: 13px; }
+        .result.pass { background: #e6f6ec; color: #176b36; }
+        .result.wait { background: #fff5dc; color: #785500; }
+        .account_table_block { width: 100%; border-collapse: collapse; background: #fff; }
+        .header { padding: 14px; background: #034b9e; color: #fff; text-align: left; font-size: 17px; }
+        .account_item > td { padding: 0; border: 1px solid #034b9e; border-top: 0; }
+        .account_item table { width: 100%; border-collapse: collapse; }
+        .account_item td { padding: 9px 8px; }
+        .account_item a { color: #034b9e; text-decoration: none; }
+        .account_more { display: inline-grid; place-items: center; width: 24px; height: 24px; margin-right: 8px; border-radius: 50%; background: #034b9e; color: #fff; font-weight: 800; }
+        .info_acc_top { font-size: 17px; }
+        .info_acc_bottom { font-weight: 700; }
+        .balance { color: #034b9e; text-align: center; font-size: 14px; }
+        .label { color: #9aa7b4; text-align: center; font-size: 11px; }
+        .account_details td { padding: 14px; background: #eef3f8; }
+        .probe-frame { width: 100%; height: 46px; border: 1px dashed #8aa4bd; background: #fff; }
+        .transfer_options { margin-top: 14px; padding: 12px; background: #ffe8e8; color: #8c1d1d; }
+        .forbidden-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+        button { padding: 10px 14px; }
+        .spacer { height: 420px; display: grid; place-items: end center; color: #7f91a3; }
+        @media (max-width: 640px) {
+            .account_item td { padding: 7px 4px; }
+            .info_acc_top { font-size: 14px; }
+            .balance { font-size: 12px; }
+        }
+    </style>
+</head>
+<body class="body_fr">
+<div class="test-banner">STATIC TEST DATA — no customer information and no bank login</div>
+<div id="index_content" class="content">
+    <div id="head_wrapper">
+        <div id="top_div_menu">
+            <div class="logout"><a href="javascript:logout_event()">Se déconnecter</a></div>
+        </div>
+        <div id="top_div_menu2">
+            <div class="brand">SOGEBANKING — TEST</div>
+            <nav id="topNav">
+                <ul>
+                    <li><a href="javascript:load_content('pages_personal/accounts.html')">Comptes</a></li>
+                    <li><a href="javascript:load_content('pages_personal/payments.html')">Paiements</a></li>
+                    <li><a href="javascript:load_content('pages_personal/transfers_landing.html')">Transferts</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="welcome_info">
+            <span id="welcome_message"><lng key="newShareApplication.welcome">Bienvenue</lng>
+                <span class="userNameText">TEST USER</span>.
+                <lng key="main.lastLoggedOn">Dernière connexion</lng>
+                <span class="lastLoggedonText">01/01/2030 10:00 AM</span>
+            </span>
+        </div>
+    </div>
+
+    <main id="main_container">
+        <section class="test-panel" aria-labelledby="test-title">
+            <h2 id="test-title">Protection test results</h2>
+            <div class="test-grid">
+                <div id="readonly-result" class="result wait">Read-only: waiting for dashboard detection</div>
+                <div id="override-result" class="result wait">TMP override: waiting for the synthetic balance</div>
+                <div id="account-result" class="result wait">load_account: tap an account row</div>
+                <div id="sensitive-result" class="result wait">Sensitive page: waiting for a blocked request</div>
+                <div id="transfer-result" class="result wait">Transfer controls: waiting for protection</div>
+            </div>
+            <div class="forbidden-controls">
+                <button type="button" onclick="markForbiddenAction()">This button must not work</button>
+                <a href="javascript:load_content('pages_personal/payments.html')">This navigation must not work</a>
+            </div>
+        </section>
+
+        <section id="page_container">
+            <table id="acc_bottom_1" class="account_table_block">
+                <thead><tr><th colspan="3" class="header"><lng key="accounts.depositAccounts">Comptes de dépôt</lng></th></tr></thead>
+                <tbody class="accounts_list ui-sortable" id="acc_bottom_sub1">
+                    <tr class="account_item" account_id="9000000001"><td colspan="3"><table><tbody>
+                        <tr><td><div class="info_acc_top"><a href="javascript:load_account(1)"><span class="account_more">+</span>EPARGNE</a></div></td><td><div class="balance">GDES 2,235.05</div></td><td><div class="balance">GDES 2,235.05</div></td></tr>
+                        <tr><td class="info_acc_bottom"><a href="javascript:load_account(1)" class="account_no_link">XXXX0001</a></td><td class="label">BALANCE COURANTE</td><td class="label">BALANCE DISPONIBLE</td></tr>
+                        <tr id="account_for_1" class="account_details" style="display:none"><td colspan="3"></td></tr>
+                    </tbody></table></td></tr>
+                    <tr class="account_item" account_id="9000000256"><td colspan="3"><table><tbody>
+                        <tr><td><div class="info_acc_top"><a href="javascript:load_account(2)"><span class="account_more">+</span>EPARGNE</a></div></td><td><div class="balance">GDES 1,163.48</div></td><td><div class="balance">GDES 1,163.48</div></td></tr>
+                        <tr><td class="info_acc_bottom"><a href="javascript:load_account(2)" class="account_no_link">XXXX0256</a></td><td class="label">BALANCE COURANTE</td><td class="label">BALANCE DISPONIBLE</td></tr>
+                        <tr id="account_for_2" class="account_details" style="display:none"><td colspan="3"></td></tr>
+                    </tbody></table></td></tr>
+                    <tr class="account_item" account_id="9000000003"><td colspan="3"><table><tbody>
+                        <tr><td><div class="info_acc_top"><a href="javascript:load_account(3)"><span class="account_more">+</span>COURANT</a></div></td><td><div class="balance">GDES 1,608.71</div></td><td><div class="balance">GDES 1,608.71</div></td></tr>
+                        <tr><td class="info_acc_bottom"><a href="javascript:load_account(3)" class="account_no_link">XXXX0003</a></td><td class="label">BALANCE COURANTE</td><td class="label">BALANCE DISPONIBLE</td></tr>
+                        <tr id="account_for_3" class="account_details" style="display:none"><td colspan="3"></td></tr>
+                    </tbody></table></td></tr>
+                </tbody>
+            </table>
+            <div class="transfer_options">FAIL — transfer controls are still visible</div>
+        </section>
+        <div class="spacer">Scroll test: if you can reach this text, vertical scrolling still works.</div>
+    </main>
+</div>
+
+<script>
+    function setResult(id, text, passed) {
+        var element = document.getElementById(id);
+        if (!element || element.textContent === text) return;
+        element.textContent = text;
+        element.className = 'result ' + (passed ? 'pass' : 'wait');
+    }
+
+    function load_account(index) {
+        setResult('account-result', 'PASS — the site\'s load_account(' + index + ') ran normally', true);
+        var row = document.getElementById('account_for_' + index);
+        if (!row) return;
+        row.style.display = 'table-row';
+        row.cells[0].innerHTML = '<div>Requesting the synthetic sensitive page…</div>';
+        var frame = document.createElement('iframe');
+        frame.className = 'probe-frame';
+        frame.title = 'Synthetic sensitive-page probe';
+        frame.src = 'https://fixture.sogemobile.invalid/pages_personal/account_details.html?row=' + index;
+        row.cells[0].appendChild(frame);
+    }
+
+    function load_content() {
+        setResult('readonly-result', 'FAIL — read-only allowed a forbidden navigation', false);
+    }
+
+    function logout_event() {
+        setResult('readonly-result', 'FAIL — read-only allowed logout', false);
+    }
+
+    function markForbiddenAction() {
+        setResult('readonly-result', 'FAIL — read-only allowed a button action', false);
+    }
+
+    window.__sogemobileStaticBlocked = function () {
+        setResult('sensitive-result', 'PASS — account_details.html was intercepted before rendering', true);
+        document.querySelectorAll('.account_details').forEach(function (row) {
+            row.style.display = 'none';
+            row.innerHTML = '<td colspan="3"></td>';
+        });
+    };
+
+    function refreshResults() {
+        if (window.__readOnlyInstalled) {
+            setResult('readonly-result', 'PASS — forbidden controls are disabled; scrolling remains available', true);
+        }
+        var target = document.querySelector('tr.account_item[account_id="9000000256"]');
+        if (target && target.querySelector('.sogemobile-temp-badge')
+                && target.textContent.indexOf('GDES 26,795.45') !== -1) {
+            setResult('override-result', 'PASS — TMP changed both synthetic balances and added its badge', true);
+        }
+        var transfer = document.querySelector('.transfer_options');
+        if (transfer && getComputedStyle(transfer).display === 'none') {
+            setResult('transfer-result', 'PASS — transfer controls are hidden', true);
+        }
+    }
+
+    new MutationObserver(refreshResults).observe(document.documentElement, {
+        childList: true, subtree: true, characterData: true, attributes: true
+    });
+    setInterval(refreshResults, 250);
+</script>
+</body>
+</html>

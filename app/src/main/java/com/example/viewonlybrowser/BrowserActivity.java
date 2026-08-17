@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.CookieManager;
 import android.webkit.WebResourceError;
@@ -18,8 +19,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.Scanner;
 
 public final class BrowserActivity extends Activity {
+    static final String EXTRA_STATIC_DASHBOARD_TEST = "static_dashboard_test";
     private static final String STATE_CURRENT_URL = "current_url";
     private static final String STATE_DASHBOARD_DETECTED = "dashboard_detected";
     private static final String TARGET_DETECTED_URL = "viewonly://target-detected";
@@ -34,6 +38,7 @@ public final class BrowserActivity extends Activity {
     private MobileControlClient controlClient;
     private MobileAppConfig config;
     private boolean dashboardDetected;
+    private boolean staticDashboardTest;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -46,7 +51,11 @@ public final class BrowserActivity extends Activity {
         statusText = findViewById(R.id.statusText);
         ImageButton closeButton = findViewById(R.id.closeButton);
         controlClient = new MobileControlClient(this);
-        config = controlClient.cachedOrSafeConfig();
+        staticDashboardTest = BuildConfig.DEBUG
+                && getIntent().getBooleanExtra(EXTRA_STATIC_DASHBOARD_TEST, false);
+        config = staticDashboardTest
+                ? StaticDashboardFixture.config()
+                : controlClient.cachedOrSafeConfig();
 
         closeButton.setOnClickListener(view -> finish());
 
@@ -58,16 +67,21 @@ public final class BrowserActivity extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
+        webView.addJavascriptInterface(new DashboardBridge(), "SogeMobileBridge");
         webView.setWebViewClient(new LockedPageWebViewClient());
         webView.setOnLongClickListener(view -> dashboardDetected && config.readonlyEnabled);
 
         if (savedInstanceState == null) {
-            webView.loadUrl(config.startUrl);
+            loadInitialPage();
         } else {
             dashboardDetected = savedInstanceState.getBoolean(STATE_DASHBOARD_DETECTED, false);
             String currentUrl = savedInstanceState.getString(STATE_CURRENT_URL, config.startUrl);
             updateProtectionUi();
-            webView.loadUrl(currentUrl);
+            if (staticDashboardTest) {
+                loadStaticDashboard();
+            } else {
+                webView.loadUrl(currentUrl);
+            }
         }
     }
 
@@ -92,6 +106,7 @@ public final class BrowserActivity extends Activity {
     protected void onDestroy() {
         if (webView != null) {
             webView.stopLoading();
+            webView.removeJavascriptInterface("SogeMobileBridge");
             webView.setWebViewClient(null);
             webView.destroy();
         }
@@ -108,7 +123,29 @@ public final class BrowserActivity extends Activity {
                 webView.clearHistory();
             }
             updateProtectionUi();
-            controlClient.sendEvent("dashboard_detected", config);
+            if (!staticDashboardTest) {
+                controlClient.sendEvent("dashboard_detected", config);
+            }
+        }
+    }
+
+    private void loadInitialPage() {
+        if (staticDashboardTest) {
+            loadStaticDashboard();
+        } else {
+            webView.loadUrl(config.startUrl);
+        }
+    }
+
+    private void loadStaticDashboard() {
+        try (InputStream input = getAssets().open(StaticDashboardFixture.ASSET_NAME);
+             Scanner scanner = new Scanner(input, "UTF-8").useDelimiter("\\A")) {
+            String html = scanner.hasNext() ? scanner.next() : "";
+            webView.loadDataWithBaseURL(
+                    StaticDashboardFixture.BASE_URL, html, "text/html", "UTF-8", null);
+        } catch (Exception exception) {
+            Toast.makeText(this, R.string.page_load_failed, Toast.LENGTH_LONG).show();
+            finish();
         }
     }
 
@@ -146,10 +183,33 @@ public final class BrowserActivity extends Activity {
                 config.displayOverrideBalanceText), null);
     }
 
+    /** Receives only the dashboard-detected signal; no page or account data crosses the bridge. */
+    private final class DashboardBridge {
+        @JavascriptInterface
+        public void onDashboardDetected() {
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed() || webView == null) {
+                    return;
+                }
+                activateDashboardProtection();
+                injectInteractionBlocker();
+            });
+        }
+    }
+
     private final class LockedPageWebViewClient extends WebViewClient {
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-            if (config.functionBlockingEnabled && ViewOnlyBlockPolicy.blocks(request.getUrl().toString())) {
+            String requestedUrl = request.getUrl().toString();
+            boolean staticSensitiveRequest = staticDashboardTest
+                    && StaticDashboardFixture.blocks(requestedUrl);
+            if (config.functionBlockingEnabled
+                    && (ViewOnlyBlockPolicy.blocks(requestedUrl) || staticSensitiveRequest)) {
+                if (staticSensitiveRequest) {
+                    runOnUiThread(() -> view.evaluateJavascript(
+                            "window.__sogemobileStaticBlocked&&window.__sogemobileStaticBlocked();",
+                            null));
+                }
                 return new WebResourceResponse(
                         "text/html",
                         "UTF-8",
@@ -181,7 +241,8 @@ public final class BrowserActivity extends Activity {
 
             // Let the site's JavaScript loaders run, but never allow an explicitly
             // sensitive account-details or transfer destination to become the main document.
-            if (config.functionBlockingEnabled && ViewOnlyBlockPolicy.blocks(requestedUrl)) {
+            if (config.functionBlockingEnabled && (ViewOnlyBlockPolicy.blocks(requestedUrl)
+                    || (staticDashboardTest && StaticDashboardFixture.blocks(requestedUrl)))) {
                 return true;
             }
 
@@ -208,7 +269,7 @@ public final class BrowserActivity extends Activity {
             progressBar.setVisibility(View.GONE);
             if (dashboardDetected) {
                 injectInteractionBlocker();
-            } else if (trustedSitePolicy.matches(url)) {
+            } else if (staticDashboardTest || trustedSitePolicy.matches(url)) {
                 injectTargetPageDetector();
             }
         }
@@ -217,7 +278,7 @@ public final class BrowserActivity extends Activity {
         public void onPageCommitVisible(WebView view, String url) {
             if (dashboardDetected) {
                 injectInteractionBlocker();
-            } else if (trustedSitePolicy.matches(url)) {
+            } else if (staticDashboardTest || trustedSitePolicy.matches(url)) {
                 injectTargetPageDetector();
             }
         }

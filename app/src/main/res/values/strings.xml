@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SogeMobile</string>
     <string name="app_logo">Sogebanking</string>
     <string name="home_title">Welcome</string>
     <string name="home_subtitle">Open the website securely inside the app.</string>
     <string name="open_website">Open Sogebanking</string>
+    <string name="open_static_test">Test static dashboard</string>
     <string name="close_browser">Close browser</string>
     <string name="secure_browser">Secure browser</string>
     <string name="view_only_mode">View-only mode</string>

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -23,6 +24,7 @@ public final class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         openWebsiteButton = findViewById(R.id.openWebsiteButton);
+        Button openStaticTestButton = findViewById(R.id.openStaticTestButton);
         availabilityMessage = findViewById(R.id.availabilityMessage);
         controlClient = new MobileControlClient(this);
         updateInstaller = new UpdateInstaller(this);
@@ -34,6 +36,13 @@ public final class MainActivity extends Activity {
                 startActivity(new Intent(this, BrowserActivity.class));
             }
         });
+
+        if (BuildConfig.DEBUG) {
+            openStaticTestButton.setVisibility(View.VISIBLE);
+            openStaticTestButton.setOnClickListener(view -> startActivity(
+                    new Intent(this, BrowserActivity.class)
+                            .putExtra(BrowserActivity.EXTRA_STATIC_DASHBOARD_TEST, true)));
+        }
 
         controlClient.fetchConfig((loaded, fresh) -> {
             if (isFinishing() || isDestroyed()) {

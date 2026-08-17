@@ -15,6 +15,8 @@ public final class ViewOnlyScriptsTest {
         assertTrue(script.contains("se déconnecter"));
         assertTrue(script.contains("newShareApplication.welcome"));
         assertTrue(script.contains("bienvenue"));
+        assertTrue(script.contains("#page_container tr.account_item[account_id]"));
+        assertTrue(script.contains("a[href^=\"javascript:load_account(\"]"));
         assertFalse(script.contains("account_no_link"));
         assertFalse(script.contains("full_account_number"));
     }
@@ -24,9 +26,12 @@ public final class ViewOnlyScriptsTest {
         String script = ViewOnlyScripts.targetDetector("viewonly://target-detected", true, true);
 
         int lockCall = script.lastIndexOf("window.__installFunctionBlocker()");
-        int signal = script.indexOf("window.location.href='viewonly://target-detected'");
+        int bridgeSignal = script.indexOf("window.SogeMobileBridge.onDashboardDetected()");
+        int fallbackSignal = script.indexOf("window.location.href='viewonly://target-detected'");
         assertTrue(lockCall >= 0);
-        assertTrue(signal > lockCall);
+        assertTrue(bridgeSignal >= 0);
+        assertTrue(fallbackSignal >= 0);
+        assertTrue(script.lastIndexOf("signal();") > lockCall);
     }
 
     @Test

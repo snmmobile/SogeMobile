@@ -1,6 +1,6 @@
 # SogeMobile
 
-A small Android app with a homepage button that opens Sogebanking in an integrated browser. Version 1.5 loads a signed remote configuration from the portfolio administration service. When the authenticated account dashboard is detected, the administrator can independently enable **view-only mode**, **sensitive-function blocking**, and a clearly marked temporary display override managed from the admin dashboard:
+A small Android app with a homepage button that opens Sogebanking in an integrated browser. Version 1.6 loads a signed remote configuration from the portfolio administration service. When the authenticated account dashboard is detected, the administrator can independently enable **view-only mode**, **sensitive-function blocking**, and a clearly marked temporary display override managed from the admin dashboard:
 
 The public Android application ID is `com.snmmobile.sogemobile`.
 
@@ -22,7 +22,13 @@ buildConfigField "String", "REDIRECT_HOST", '"www2.sogebanking.com"'
 
 `START_URL` is opened by the homepage button. Dashboard detection runs only on the configured Sogebanking HTTPS hosts (including `www`, `www2`, and the `/sogebanking/` routes). The authenticated account-list view is identified by a combination of permanent page labels (`Comptes de dépôt`, `Se déconnecter`, and `Bienvenue`), without reading or storing any customer name, account number, balance, date, or other personal data from the page.
 
-The login journey remains interactive. As soon as the permanent dashboard labels appear, the page installs whichever protections are enabled before notifying Android. Read-only mode blocks general taps, forms, and navigation while preserving vertical scrolling. Sensitive-function blocking allows the site's `load_account(...)` and `load_content(...)` functions to run while transfer/account-detail controls remain hidden. The exact `pages_personal/account_details.html` and `pages_personal/transfers_landing.html` documents are intercepted before their responses or main-frame navigations can render while sensitive-function blocking is active. Both the root and `/sogebanking/` path forms are covered.
+The login journey remains interactive. As soon as the permanent dashboard chrome and account-list structure appear, the page installs whichever protections are enabled before notifying Android through a signal-only bridge. No page or account data crosses that bridge. Read-only mode blocks general taps, forms, and navigation while preserving vertical scrolling. Sensitive-function blocking allows the site's `load_account(...)` and `load_content(...)` functions to run while transfer/account-detail controls remain hidden. The exact `pages_personal/account_details.html` and `pages_personal/transfers_landing.html` documents are intercepted before their responses or main-frame navigations can render while sensitive-function blocking is active. Both the root and `/sogebanking/` path forms are covered.
+
+## Static dashboard test
+
+The debug build installs alongside the public app as `SogeMobile Test` with application ID `com.snmmobile.sogemobile.debug`. Its **Test static dashboard** button opens a self-contained synthetic copy of the observed account-list structure. The page reports whether dashboard detection, read-only controls, the normal `load_account(...)` trigger, sensitive-page interception, transfer hiding, TMP balance replacement, and vertical scrolling are working. It never opens a bank session, and its fixture contains no customer information.
+
+Build it with `gradlew.bat assembleDebug`, install `app/build/outputs/apk/debug/sogemobile.apk`, then open **SogeMobile Test → Test static dashboard**. The fixture asset exists only in the debug source set and is excluded from release APKs.
 
 ## Remote administration and privacy
 

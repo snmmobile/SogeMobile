@@ -19,8 +19,8 @@ android {
         applicationId "com.snmmobile.sogemobile"
         minSdk 23
         targetSdk 35
-        versionCode 6
-        versionName "1.5"
+        versionCode 7
+        versionName "1.6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -42,6 +42,9 @@ android {
 
     buildTypes {
         debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-test"
+            resValue "string", "app_name", "SogeMobile Test"
             buildConfigField "String", "START_URL", '"https://www2.sogebanking.com/sogebanking/#f"'
             buildConfigField "String", "TRUSTED_HOST", '"sogebanking.com"'
             buildConfigField "String", "REDIRECT_HOST", '"www2.sogebanking.com"'
@@ -50,6 +53,7 @@ android {
             buildConfigField "String", "CONFIG_PUBLIC_KEY_BASE64", '"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfoR71+0x/9ESyCyk2LuerVEPW6K9VkFo4+xiMKOSXcNnCEt6fSo7hlKvNnBJ3B0HlKOP0lml25lAGsInwUT7zw=="'
         }
         release {
+            resValue "string", "app_name", "SogeMobile"
             minifyEnabled false
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             buildConfigField "String", "START_URL", '"https://www2.sogebanking.com/sogebanking/#f"'
