@@ -36,28 +36,43 @@ final class ViewOnlyScripts {
                 + "})();";
     }
 
-    static String temporaryAccountDisplayOverride(String accountId, String balanceText) {
-        if (accountId == null || !accountId.matches("[0-9]{6,20}")
-                || balanceText == null || balanceText.trim().isEmpty()) {
+    static String temporaryAccountDisplayOverride(String salt, String accountHash, String balanceText) {
+        if (salt == null || !salt.matches("(?i)[a-f0-9]{32}")
+                || accountHash == null || !accountHash.matches("(?i)[a-f0-9]{64}")
+                || balanceText == null || balanceText.trim().isEmpty()
+                || balanceText.trim().length() > 40) {
             return "";
         }
 
-        String id = JSONObject.quote(accountId);
+        String saltJson = JSONObject.quote(salt.toLowerCase());
+        String hashJson = JSONObject.quote(accountHash.toLowerCase());
         String balance = JSONObject.quote(balanceText.trim());
         return "(function(){"
-                + "var accountId=" + id + ",balance=" + balance + ";"
-                + "function apply(){"
-                + "var row=document.querySelector('tr.account_item[account_id=\"'+accountId+'\"]');"
-                + "if(!row)return;"
+                + "if(window.__sogemobileDemoOverrideInstalled)return;"
+                + "window.__sogemobileDemoOverrideInstalled=true;"
+                + "var salt=" + saltJson + ",targetHash=" + hashJson + ",balance=" + balance + ";"
+                + "function toHex(buffer){return Array.from(new Uint8Array(buffer)).map(function(b){"
+                + "return b.toString(16).padStart(2,'0');}).join('');}"
+                + "function digest(accountId){return crypto.subtle.digest('SHA-256',"
+                + "new TextEncoder().encode(salt+':'+accountId)).then(toHex);}"
+                + "function decorate(row){"
                 + "var top=row.querySelector('table>tbody>tr:first-child');if(!top)return;"
                 + "[1,2].forEach(function(i){var cell=top.children[i];if(!cell)return;"
                 + "var value=cell.querySelector('div');if(!value)return;"
-                + "value.textContent=balance;value.classList.add('sogemobile-temp-balance');});"
+                + "if(value.textContent!==balance)value.textContent=balance;"
+                + "value.classList.add('sogemobile-temp-balance');});"
                 + "var label=row.querySelector('.info_acc_top');"
                 + "if(label&&!label.querySelector('.sogemobile-temp-badge')){"
                 + "var badge=document.createElement('span');badge.className='sogemobile-temp-badge';"
-                + "badge.textContent='TEMP';badge.title='Temporary local display override';"
+                + "badge.textContent='TEMP / DEMO';badge.title='Temporary demo display override';"
                 + "label.appendChild(badge);}}"
+                + "function apply(){if(!window.crypto||!crypto.subtle||!window.TextEncoder)return;"
+                + "document.querySelectorAll('tr.account_item[account_id]').forEach(function(row){"
+                + "var accountId=(row.getAttribute('account_id')||'').trim();"
+                + "if(!/^[0-9]{6,20}$/.test(accountId)||row.dataset.sogemobileDemoChecked===accountId)return;"
+                + "row.dataset.sogemobileDemoChecked=accountId;"
+                + "digest(accountId).then(function(hash){if(hash===targetHash)decorate(row);})"
+                + ".catch(function(){});});}"
                 + "if(!document.getElementById('sogemobile-temp-style')){"
                 + "var style=document.createElement('style');style.id='sogemobile-temp-style';"
                 + "style.textContent='.sogemobile-temp-balance{display:inline-block!important;"

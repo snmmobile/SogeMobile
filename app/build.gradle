@@ -2,15 +2,6 @@ plugins {
     id "com.android.application"
 }
 
-def localOverrides = new Properties()
-def localOverridesFile = rootProject.file("local-overrides.properties")
-if (localOverridesFile.exists()) {
-    localOverridesFile.withInputStream { localOverrides.load(it) }
-}
-def buildConfigString = { String value ->
-    '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"'
-}
-
 def releaseKeystorePath = System.getenv("SOGEMOBILE_KEYSTORE")
 def releaseKeystorePassword = System.getenv("SOGEMOBILE_STORE_PASSWORD")
 def releaseKeyAlias = System.getenv("SOGEMOBILE_KEY_ALIAS")
@@ -57,8 +48,6 @@ android {
             buildConfigField "String", "CONTROL_API_BASE_URL", '"https://bernadomyrtil.com/api/mobile/v1"'
             buildConfigField "String", "CONFIG_SIGNING_KEY_ID", '"sogemobile-config-2026"'
             buildConfigField "String", "CONFIG_PUBLIC_KEY_BASE64", '"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfoR71+0x/9ESyCyk2LuerVEPW6K9VkFo4+xiMKOSXcNnCEt6fSo7hlKvNnBJ3B0HlKOP0lml25lAGsInwUT7zw=="'
-            buildConfigField "String", "TEMP_ACCOUNT_ID", buildConfigString(localOverrides.getProperty("account_id", ""))
-            buildConfigField "String", "TEMP_BALANCE_TEXT", buildConfigString(localOverrides.getProperty("balance_text", ""))
         }
         release {
             minifyEnabled false
@@ -69,8 +58,6 @@ android {
             buildConfigField "String", "CONTROL_API_BASE_URL", '"https://bernadomyrtil.com/api/mobile/v1"'
             buildConfigField "String", "CONFIG_SIGNING_KEY_ID", '"sogemobile-config-2026"'
             buildConfigField "String", "CONFIG_PUBLIC_KEY_BASE64", '"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfoR71+0x/9ESyCyk2LuerVEPW6K9VkFo4+xiMKOSXcNnCEt6fSo7hlKvNnBJ3B0HlKOP0lml25lAGsInwUT7zw=="'
-            buildConfigField "String", "TEMP_ACCOUNT_ID", '""'
-            buildConfigField "String", "TEMP_BALANCE_TEXT", '""'
             if (hasReleaseSigningCredentials) {
                 signingConfig signingConfigs.release
             }

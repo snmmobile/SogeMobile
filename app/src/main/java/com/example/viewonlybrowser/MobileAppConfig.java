@@ -18,6 +18,10 @@ final class MobileAppConfig {
     final String maintenanceMessage;
     final boolean readonlyEnabled;
     final boolean functionBlockingEnabled;
+    final boolean displayOverrideEnabled;
+    final String displayOverrideSalt;
+    final String displayOverrideAccountHash;
+    final String displayOverrideBalanceText;
     final String startUrl;
     final int minimumVersionCode;
     final boolean forceUpdate;
@@ -33,6 +37,10 @@ final class MobileAppConfig {
             String maintenanceMessage,
             boolean readonlyEnabled,
             boolean functionBlockingEnabled,
+            boolean displayOverrideEnabled,
+            String displayOverrideSalt,
+            String displayOverrideAccountHash,
+            String displayOverrideBalanceText,
             String startUrl,
             int minimumVersionCode,
             boolean forceUpdate,
@@ -46,6 +54,10 @@ final class MobileAppConfig {
         this.maintenanceMessage = maintenanceMessage;
         this.readonlyEnabled = readonlyEnabled;
         this.functionBlockingEnabled = functionBlockingEnabled;
+        this.displayOverrideEnabled = displayOverrideEnabled;
+        this.displayOverrideSalt = displayOverrideSalt;
+        this.displayOverrideAccountHash = displayOverrideAccountHash;
+        this.displayOverrideBalanceText = displayOverrideBalanceText;
         this.startUrl = startUrl;
         this.minimumVersionCode = minimumVersionCode;
         this.forceUpdate = forceUpdate;
@@ -57,7 +69,8 @@ final class MobileAppConfig {
     }
 
     static MobileAppConfig safeDefaults() {
-        return new MobileAppConfig(0, true, "", true, true, BuildConfig.START_URL,
+        return new MobileAppConfig(0, true, "", true, true,
+                false, null, null, null, BuildConfig.START_URL,
                 1, false, null, null, null, null, null);
     }
 
@@ -82,13 +95,14 @@ final class MobileAppConfig {
         return parsePayload(new JSONObject(new String(payloadBytes, StandardCharsets.UTF_8)));
     }
 
-    private static MobileAppConfig parsePayload(JSONObject payload) throws Exception {
+    static MobileAppConfig parsePayload(JSONObject payload) throws Exception {
         if (payload.getInt("schema_version") != 1) {
             throw new SecurityException("Unsupported mobile configuration schema");
         }
 
         JSONObject app = payload.getJSONObject("app");
         JSONObject protections = payload.getJSONObject("protections");
+        JSONObject displayOverride = payload.optJSONObject("display_override");
         JSONObject web = payload.getJSONObject("web");
         JSONObject update = payload.getJSONObject("update");
         String startUrl = web.getString("start_url");
@@ -105,12 +119,34 @@ final class MobileAppConfig {
             throw new SecurityException("Invalid APK digest");
         }
 
+        boolean displayOverrideEnabled = displayOverride != null
+                && displayOverride.optBoolean("enabled", false);
+        String displayOverrideSalt = null;
+        String displayOverrideAccountHash = null;
+        String displayOverrideBalanceText = null;
+        if (displayOverrideEnabled) {
+            displayOverrideSalt = nullableString(displayOverride, "account_salt");
+            displayOverrideAccountHash = nullableString(displayOverride, "account_hash");
+            displayOverrideBalanceText = nullableString(displayOverride, "balance_text");
+            if (displayOverrideSalt == null || !displayOverrideSalt.matches("(?i)[a-f0-9]{32}")
+                    || displayOverrideAccountHash == null
+                    || !displayOverrideAccountHash.matches("(?i)[a-f0-9]{64}")
+                    || displayOverrideBalanceText == null
+                    || displayOverrideBalanceText.length() > 40) {
+                throw new SecurityException("Invalid demo display override");
+            }
+        }
+
         return new MobileAppConfig(
                 payload.getInt("config_version"),
                 app.getBoolean("enabled"),
                 app.optString("maintenance_message", ""),
                 protections.getBoolean("readonly_enabled"),
                 protections.getBoolean("function_blocking_enabled"),
+                displayOverrideEnabled,
+                displayOverrideSalt == null ? null : displayOverrideSalt.toLowerCase(Locale.ROOT),
+                displayOverrideAccountHash == null ? null : displayOverrideAccountHash.toLowerCase(Locale.ROOT),
+                displayOverrideBalanceText,
                 startUrl,
                 Math.max(1, update.getInt("minimum_version_code")),
                 update.getBoolean("force_update"),

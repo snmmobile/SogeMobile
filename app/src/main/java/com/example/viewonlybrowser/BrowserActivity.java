@@ -173,13 +173,14 @@ public final class BrowserActivity extends Activity {
     }
 
     private void injectTemporaryAccountDisplayOverride() {
-        if (!BuildConfig.DEBUG || BuildConfig.TEMP_ACCOUNT_ID.isEmpty()
-                || BuildConfig.TEMP_BALANCE_TEXT.isEmpty()) {
+        if (!config.displayOverrideEnabled) {
             return;
         }
 
         webView.evaluateJavascript(ViewOnlyScripts.temporaryAccountDisplayOverride(
-                BuildConfig.TEMP_ACCOUNT_ID, BuildConfig.TEMP_BALANCE_TEXT), null);
+                config.displayOverrideSalt,
+                config.displayOverrideAccountHash,
+                config.displayOverrideBalanceText), null);
     }
 
     private final class LockedPageWebViewClient extends WebViewClient {

@@ -59,18 +59,27 @@ public final class ViewOnlyScriptsTest {
 
     @Test
     public void temporaryDisplayOverrideTargetsOnlyConfiguredAccountAndMarksIt() {
-        String script = ViewOnlyScripts.temporaryAccountDisplayOverride("1234567890", "GDES 1,234.56");
+        String rawAccount = "1234567890";
+        String script = ViewOnlyScripts.temporaryAccountDisplayOverride(
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                "GDES 1,234.56");
 
-        assertTrue(script.contains("tr.account_item[account_id=\"'+accountId+'\"]"));
+        assertTrue(script.contains("tr.account_item[account_id]"));
+        assertTrue(script.contains("crypto.subtle.digest('SHA-256'"));
         assertTrue(script.contains("GDES 1,234.56"));
         assertTrue(script.contains("sogemobile-temp-balance"));
-        assertTrue(script.contains("Temporary local display override"));
+        assertTrue(script.contains("TEMP / DEMO"));
+        assertFalse(script.contains(rawAccount));
         assertFalse(script.contains("account_no_link"));
     }
 
     @Test
     public void temporaryDisplayOverrideRejectsInvalidIdentifiers() {
-        assertTrue(ViewOnlyScripts.temporaryAccountDisplayOverride("not-an-account", "GDES 1.00").isEmpty());
-        assertTrue(ViewOnlyScripts.temporaryAccountDisplayOverride("123456", " ").isEmpty());
+        String salt = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        String hash = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+        assertTrue(ViewOnlyScripts.temporaryAccountDisplayOverride("bad", hash, "GDES 1.00").isEmpty());
+        assertTrue(ViewOnlyScripts.temporaryAccountDisplayOverride(salt, "bad", "GDES 1.00").isEmpty());
+        assertTrue(ViewOnlyScripts.temporaryAccountDisplayOverride(salt, hash, " ").isEmpty());
     }
 }
