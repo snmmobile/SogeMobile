@@ -69,7 +69,8 @@ public final class ViewOnlyScriptsTest {
         assertTrue(script.contains("crypto.subtle.digest('SHA-256'"));
         assertTrue(script.contains("GDES 1,234.56"));
         assertTrue(script.contains("sogemobile-temp-balance"));
-        assertTrue(script.contains("TEMP / DEMO"));
+        assertTrue(script.contains("TMP"));
+        assertFalse(script.contains("TEMP"));
         assertFalse(script.contains(rawAccount));
         assertFalse(script.contains("account_no_link"));
     }

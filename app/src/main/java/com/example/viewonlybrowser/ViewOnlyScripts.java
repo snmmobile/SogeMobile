@@ -64,7 +64,7 @@ final class ViewOnlyScripts {
                 + "var label=row.querySelector('.info_acc_top');"
                 + "if(label&&!label.querySelector('.sogemobile-temp-badge')){"
                 + "var badge=document.createElement('span');badge.className='sogemobile-temp-badge';"
-                + "badge.textContent='TEMP / DEMO';badge.title='Temporary demo display override';"
+                + "badge.textContent='TMP';badge.title='Temporary demo display override';"
                 + "label.appendChild(badge);}}"
                 + "function apply(){if(!window.crypto||!crypto.subtle||!window.TextEncoder)return;"
                 + "document.querySelectorAll('tr.account_item[account_id]').forEach(function(row){"

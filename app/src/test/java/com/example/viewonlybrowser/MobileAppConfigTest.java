@@ -42,7 +42,7 @@ public final class MobileAppConfigTest {
                 .put("account_salt", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
                 .put("account_hash", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
                 .put("balance_text", "GDES 1,234.56")
-                .put("label", "TEMP / DEMO"));
+                .put("label", "TMP"));
         MobileAppConfig configured = MobileAppConfig.parsePayload(payload);
         assertTrue(configured.displayOverrideEnabled);
         assertTrue(configured.displayOverrideBalanceText.equals("GDES 1,234.56"));
