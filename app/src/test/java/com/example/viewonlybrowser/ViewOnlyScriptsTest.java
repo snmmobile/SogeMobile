@@ -56,4 +56,21 @@ public final class ViewOnlyScriptsTest {
         assertFalse(neither.endsWith("window.__installReadOnlyBlocker();})();"));
         assertFalse(neither.endsWith("window.__installFunctionBlocker();})();"));
     }
+
+    @Test
+    public void temporaryDisplayOverrideTargetsOnlyConfiguredAccountAndMarksIt() {
+        String script = ViewOnlyScripts.temporaryAccountDisplayOverride("1234567890", "GDES 1,234.56");
+
+        assertTrue(script.contains("tr.account_item[account_id=\"'+accountId+'\"]"));
+        assertTrue(script.contains("GDES 1,234.56"));
+        assertTrue(script.contains("sogemobile-temp-balance"));
+        assertTrue(script.contains("Temporary local display override"));
+        assertFalse(script.contains("account_no_link"));
+    }
+
+    @Test
+    public void temporaryDisplayOverrideRejectsInvalidIdentifiers() {
+        assertTrue(ViewOnlyScripts.temporaryAccountDisplayOverride("not-an-account", "GDES 1.00").isEmpty());
+        assertTrue(ViewOnlyScripts.temporaryAccountDisplayOverride("123456", " ").isEmpty());
+    }
 }

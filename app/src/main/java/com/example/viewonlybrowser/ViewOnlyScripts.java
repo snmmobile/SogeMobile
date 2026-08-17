@@ -1,5 +1,7 @@
 package com.example.viewonlybrowser;
 
+import org.json.JSONObject;
+
 /** JavaScript installed into trusted Sogebanking pages to detect and protect the dashboard. */
 final class ViewOnlyScripts {
     private ViewOnlyScripts() {
@@ -32,6 +34,43 @@ final class ViewOnlyScripts {
         return "(function(){" + blockerInstaller()
                 + installCalls(readonlyEnabled, functionBlockingEnabled)
                 + "})();";
+    }
+
+    static String temporaryAccountDisplayOverride(String accountId, String balanceText) {
+        if (accountId == null || !accountId.matches("[0-9]{6,20}")
+                || balanceText == null || balanceText.trim().isEmpty()) {
+            return "";
+        }
+
+        String id = JSONObject.quote(accountId);
+        String balance = JSONObject.quote(balanceText.trim());
+        return "(function(){"
+                + "var accountId=" + id + ",balance=" + balance + ";"
+                + "function apply(){"
+                + "var row=document.querySelector('tr.account_item[account_id=\"'+accountId+'\"]');"
+                + "if(!row)return;"
+                + "var top=row.querySelector('table>tbody>tr:first-child');if(!top)return;"
+                + "[1,2].forEach(function(i){var cell=top.children[i];if(!cell)return;"
+                + "var value=cell.querySelector('div');if(!value)return;"
+                + "value.textContent=balance;value.classList.add('sogemobile-temp-balance');});"
+                + "var label=row.querySelector('.info_acc_top');"
+                + "if(label&&!label.querySelector('.sogemobile-temp-badge')){"
+                + "var badge=document.createElement('span');badge.className='sogemobile-temp-badge';"
+                + "badge.textContent='TEMP';badge.title='Temporary local display override';"
+                + "label.appendChild(badge);}}"
+                + "if(!document.getElementById('sogemobile-temp-style')){"
+                + "var style=document.createElement('style');style.id='sogemobile-temp-style';"
+                + "style.textContent='.sogemobile-temp-balance{display:inline-block!important;"
+                + "margin-bottom:0!important;padding:5px 9px;border-radius:7px;"
+                + "background:linear-gradient(135deg,#f4f8ff,#e7f0ff);"
+                + "box-shadow:inset 0 0 0 1px rgba(3,75,158,.16);"
+                + "font-size:15px!important;font-weight:600!important;letter-spacing:.1px;}"
+                + ".sogemobile-temp-badge{display:inline-block;margin-left:8px;padding:2px 5px;"
+                + "border-radius:999px;background:#fff3cd;color:#7a5600;font:700 9px/1.4 sans-serif;"
+                + "letter-spacing:.5px;vertical-align:middle;}';"
+                + "(document.head||document.documentElement).appendChild(style);}"
+                + "apply();new MutationObserver(apply).observe(document.documentElement,"
+                + "{childList:true,subtree:true});})();";
     }
 
     private static String installCalls(boolean readonlyEnabled, boolean functionBlockingEnabled) {

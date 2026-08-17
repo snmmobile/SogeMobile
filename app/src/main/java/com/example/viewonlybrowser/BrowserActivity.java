@@ -169,6 +169,17 @@ public final class BrowserActivity extends Activity {
     private void injectInteractionBlocker() {
         webView.evaluateJavascript(ViewOnlyScripts.interactionBlocker(
                 config.readonlyEnabled, config.functionBlockingEnabled), null);
+        injectTemporaryAccountDisplayOverride();
+    }
+
+    private void injectTemporaryAccountDisplayOverride() {
+        if (!BuildConfig.DEBUG || BuildConfig.TEMP_ACCOUNT_ID.isEmpty()
+                || BuildConfig.TEMP_BALANCE_TEXT.isEmpty()) {
+            return;
+        }
+
+        webView.evaluateJavascript(ViewOnlyScripts.temporaryAccountDisplayOverride(
+                BuildConfig.TEMP_ACCOUNT_ID, BuildConfig.TEMP_BALANCE_TEXT), null);
     }
 
     private final class LockedPageWebViewClient extends WebViewClient {
