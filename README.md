@@ -1,6 +1,6 @@
 # SogeMobile
 
-A small Android app with a homepage button that opens Sogebanking in an integrated browser. Version 1.4 loads a signed remote configuration from the portfolio administration service. When the authenticated account dashboard is detected, the administrator can independently enable **view-only mode**, **sensitive-function blocking**, and a clearly marked temporary display override managed from the admin dashboard:
+A small Android app with a homepage button that opens Sogebanking in an integrated browser. Version 1.5 loads a signed remote configuration from the portfolio administration service. When the authenticated account dashboard is detected, the administrator can independently enable **view-only mode**, **sensitive-function blocking**, and a clearly marked temporary display override managed from the admin dashboard:
 
 The public Android application ID is `com.snmmobile.sogemobile`.
 

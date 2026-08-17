@@ -33,9 +33,12 @@ public final class ViewOnlyScriptsTest {
     public void blockerAllowsLoadAccountAndLoadContent() {
         String script = ViewOnlyScripts.interactionBlocker(true, true);
 
-        assertTrue(script.contains(".transfer_options,.account_details"));
+        assertTrue(script.contains(".transfer_options{display:none!important"));
+        assertFalse(script.contains(".account_details{display:none!important"));
         assertTrue(script.contains("display:none!important"));
-        assertFalse(script.contains("a[href^=\"javascript:load_account("));
+        assertTrue(script.contains("a:not([href^=\"javascript:load_account(\"])"));
+        assertTrue(script.contains("isAccountLoadTrigger(x.target)"));
+        assertTrue(script.contains(".account_more"));
         assertFalse(script.contains("window.load_account=function"));
         assertFalse(script.contains("a[href^=\"javascript:load_content("));
         assertFalse(script.contains("window.load_content="));

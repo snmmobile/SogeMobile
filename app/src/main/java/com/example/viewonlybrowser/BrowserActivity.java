@@ -4,9 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.webkit.SslErrorHandler;
 import android.webkit.CookieManager;
 import android.webkit.WebResourceError;
@@ -36,12 +34,8 @@ public final class BrowserActivity extends Activity {
     private MobileControlClient controlClient;
     private MobileAppConfig config;
     private boolean dashboardDetected;
-    private float touchDownX;
-    private float touchDownY;
-    private boolean isTapGesture;
-    private int touchSlop;
 
-    @SuppressLint({"SetJavaScriptEnabled", "ClickableViewAccessibility"})
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,9 +59,7 @@ public final class BrowserActivity extends Activity {
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
         webView.setWebViewClient(new LockedPageWebViewClient());
-        touchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
         webView.setOnLongClickListener(view -> dashboardDetected && config.readonlyEnabled);
-        webView.setOnTouchListener((view, event) -> blockTapWhileAllowingScroll(event));
 
         if (savedInstanceState == null) {
             webView.loadUrl(config.startUrl);
@@ -132,35 +124,6 @@ public final class BrowserActivity extends Activity {
         }
     }
 
-    private boolean blockTapWhileAllowingScroll(MotionEvent event) {
-        if (!dashboardDetected || !config.readonlyEnabled) {
-            return false;
-        }
-
-        switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                touchDownX = event.getX();
-                touchDownY = event.getY();
-                isTapGesture = true;
-                return false;
-            case MotionEvent.ACTION_MOVE:
-                if (Math.abs(event.getX() - touchDownX) > touchSlop
-                        || Math.abs(event.getY() - touchDownY) > touchSlop) {
-                    isTapGesture = false;
-                }
-                return false;
-            case MotionEvent.ACTION_UP:
-                boolean shouldBlockTap = isTapGesture;
-                isTapGesture = false;
-                return shouldBlockTap;
-            case MotionEvent.ACTION_CANCEL:
-                isTapGesture = false;
-                return false;
-            default:
-                return false;
-        }
-    }
-
     private void injectTargetPageDetector() {
         webView.evaluateJavascript(ViewOnlyScripts.targetDetector(
                 TARGET_DETECTED_URL, config.readonlyEnabled, config.functionBlockingEnabled), null);
@@ -207,6 +170,13 @@ public final class BrowserActivity extends Activity {
                 activateDashboardProtection();
                 injectInteractionBlocker();
                 return true;
+            }
+
+            // Do not invoke or replace the site's function. Let its own exact
+            // account-list trigger proceed unchanged; sensitive response URLs
+            // remain governed by ViewOnlyBlockPolicy below.
+            if (dashboardDetected && SiteJavascriptPolicy.allowsAccountLoad(requestedUrl)) {
+                return false;
             }
 
             // Let the site's JavaScript loaders run, but never allow an explicitly
