@@ -197,8 +197,8 @@ public final class BrowserActivity extends Activity {
                 return true;
             }
 
-            // Let the site's load_account(...) function run, but never allow its
-            // sensitive account-details destination to become the main document.
+            // Let the site's JavaScript loaders run, but never allow an explicitly
+            // sensitive account-details or transfer destination to become the main document.
             if (config.functionBlockingEnabled && ViewOnlyBlockPolicy.blocks(requestedUrl)) {
                 return true;
             }

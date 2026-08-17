@@ -30,16 +30,16 @@ public final class ViewOnlyScriptsTest {
     }
 
     @Test
-    public void blockerAllowsLoadAccountButPermanentlyReplacesLoadContent() {
+    public void blockerAllowsLoadAccountAndLoadContent() {
         String script = ViewOnlyScripts.interactionBlocker(true, true);
 
         assertTrue(script.contains(".transfer_options,.account_details"));
         assertTrue(script.contains("display:none!important"));
         assertFalse(script.contains("a[href^=\"javascript:load_account("));
         assertFalse(script.contains("window.load_account=function"));
-        assertTrue(script.contains("window.load_content=blockedLoadContent"));
-        assertTrue(script.contains("Object.defineProperty(window,'load_content'"));
-        assertTrue(script.contains("configurable:false"));
+        assertFalse(script.contains("a[href^=\"javascript:load_content("));
+        assertFalse(script.contains("window.load_content="));
+        assertFalse(script.contains("Object.defineProperty(window,'load_content'"));
     }
 
     @Test

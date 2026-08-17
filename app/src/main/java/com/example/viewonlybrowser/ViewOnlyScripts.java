@@ -57,14 +57,9 @@ final class ViewOnlyScripts {
                 + "window.__installFunctionBlocker=window.__installFunctionBlocker||function(){"
                 + "if(window.__functionBlockerInstalled)return;window.__functionBlockerInstalled=true;"
                 + "var s=document.createElement('style');"
-                + "s.textContent='.transfer_options,.account_details,"
-                + "a[href^=\"javascript:load_content(\"]"
+                + "s.textContent='.transfer_options,.account_details"
                 + "{display:none!important;pointer-events:none!important}';"
                 + "(document.head||document.documentElement).appendChild(s);"
-                + "var blockedLoadContent=function(){return false;};"
-                + "try{window.load_content=blockedLoadContent;}catch(e){}"
-                + "try{Object.defineProperty(window,'load_content',{configurable:false,"
-                + "get:function(){return blockedLoadContent;},set:function(){}});}catch(e){}"
                 + "};";
     }
 }
