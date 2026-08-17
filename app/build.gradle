@@ -1,0 +1,85 @@
+plugins {
+    id "com.android.application"
+}
+
+def releaseKeystorePath = System.getenv("SOGEMOBILE_KEYSTORE")
+def releaseKeystorePassword = System.getenv("SOGEMOBILE_STORE_PASSWORD")
+def releaseKeyAlias = System.getenv("SOGEMOBILE_KEY_ALIAS")
+def releaseKeyPassword = System.getenv("SOGEMOBILE_KEY_PASSWORD")
+def hasReleaseSigningCredentials = releaseKeystorePath
+        && releaseKeystorePassword
+        && releaseKeyAlias
+        && releaseKeyPassword
+
+android {
+    namespace "com.example.viewonlybrowser"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.snmmobile.sogemobile"
+        minSdk 23
+        targetSdk 35
+        versionCode 2
+        versionName "1.1"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    signingConfigs {
+        release {
+            if (hasReleaseSigningCredentials) {
+                storeFile file(releaseKeystorePath)
+                storePassword releaseKeystorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            buildConfigField "String", "START_URL", '"https://www2.sogebanking.com/sogebanking/#f"'
+            buildConfigField "String", "TRUSTED_HOST", '"sogebanking.com"'
+            buildConfigField "String", "REDIRECT_HOST", '"www2.sogebanking.com"'
+            buildConfigField "String", "CONTROL_API_BASE_URL", '"https://bernadomyrtil.com/api/mobile/v1"'
+            buildConfigField "String", "CONFIG_SIGNING_KEY_ID", '"sogemobile-config-2026"'
+            buildConfigField "String", "CONFIG_PUBLIC_KEY_BASE64", '"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfoR71+0x/9ESyCyk2LuerVEPW6K9VkFo4+xiMKOSXcNnCEt6fSo7hlKvNnBJ3B0HlKOP0lml25lAGsInwUT7zw=="'
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            buildConfigField "String", "START_URL", '"https://www2.sogebanking.com/sogebanking/#f"'
+            buildConfigField "String", "TRUSTED_HOST", '"sogebanking.com"'
+            buildConfigField "String", "REDIRECT_HOST", '"www2.sogebanking.com"'
+            buildConfigField "String", "CONTROL_API_BASE_URL", '"https://bernadomyrtil.com/api/mobile/v1"'
+            buildConfigField "String", "CONFIG_SIGNING_KEY_ID", '"sogemobile-config-2026"'
+            buildConfigField "String", "CONFIG_PUBLIC_KEY_BASE64", '"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfoR71+0x/9ESyCyk2LuerVEPW6K9VkFo4+xiMKOSXcNnCEt6fSo7hlKvNnBJ3B0HlKOP0lml25lAGsInwUT7zw=="'
+            if (hasReleaseSigningCredentials) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+android.applicationVariants.configureEach { variant ->
+    variant.outputs.configureEach {
+        outputFileName = providers.gradleProperty("apkOutputName").getOrElse("sogemobile.apk")
+    }
+}
+
+dependencies {
+    // AndroidX 1.15 matches compileSdk 35; newer releases require a newer Android SDK.
+    //noinspection GradleDependency
+    implementation "androidx.core:core:1.15.0"
+    implementation "org.json:json:20240303"
+    testImplementation "junit:junit:4.13.2"
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <size
+                android:width="108dp"
+                android:height="108dp" />
+            <solid android:color="#030625" />
+        </shape>
+    </item>
+    <item
+        android:width="92dp"
+        android:height="47dp"
+        android:gravity="center">
+        <bitmap
+            android:gravity="fill"
+            android:src="@drawable/sogebanking_logo" />
+    </item>
+</layer-list>
