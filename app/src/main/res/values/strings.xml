@@ -14,7 +14,10 @@
     <string name="secure_connection_failed">The secure connection could not be verified.</string>
     <string name="app_temporarily_unavailable">The app is temporarily unavailable. Please try again later.</string>
     <string name="update_available">Update available</string>
-    <string name="update_required">An update is required before you can continue.</string>
+    <string name="update_required">Update required</string>
+    <string name="update_available_message">A newer version of SogeMobile is ready.</string>
+    <string name="update_required_message">Install the latest version to continue.</string>
+    <string name="update_now">Update now</string>
     <string name="download_update">Download update</string>
     <string name="downloading_update">Downloading update</string>
     <string name="download_progress">Downloading and verifying… %1$d%%</string>

@@ -3,8 +3,11 @@ package com.example.viewonlybrowser;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
@@ -18,6 +21,7 @@ public final class MainActivity extends Activity {
     private TextView availabilityMessage;
     private MobileAppConfig config;
     private AlertDialog downloadDialog;
+    private AlertDialog updateDialog;
     private AppUnlockGate unlockGate;
     private boolean initialized;
 
@@ -120,6 +124,9 @@ public final class MainActivity extends Activity {
         if (downloadDialog != null) {
             downloadDialog.dismiss();
         }
+        if (updateDialog != null) {
+            updateDialog.dismiss();
+        }
         super.onDestroy();
     }
 
@@ -138,35 +145,55 @@ public final class MainActivity extends Activity {
     }
 
     private void showUpdateDialog(MobileAppConfig current) {
-        String title = current.forceUpdate
-                ? getString(R.string.update_required)
-                : getString(R.string.update_available);
-        StringBuilder message = new StringBuilder();
-        if (current.latestVersionName != null) {
-            message.append(getString(R.string.version_label, current.latestVersionName));
-        }
-        if (current.releaseNotes != null) {
-            if (message.length() > 0) message.append("\n\n");
-            message.append(current.releaseNotes);
-        }
-        if (current.sha256 != null) {
-            if (message.length() > 0) message.append("\n\n");
-            message.append(getString(R.string.sha256_label, current.sha256));
+        controlClient.sendEvent("update_prompted", current);
+        if (updateDialog != null && updateDialog.isShowing()) {
+            return;
         }
 
-        controlClient.sendEvent("update_prompted", current);
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle(title)
-                .setMessage(message)
-                .setPositiveButton(R.string.download_update,
-                        (dialog, which) -> startUpdateDownload(current));
-        if (!current.forceUpdate) {
-            builder.setNegativeButton(R.string.later, null);
+        View content = getLayoutInflater().inflate(R.layout.dialog_update, null);
+        TextView title = content.findViewById(R.id.updateTitle);
+        TextView version = content.findViewById(R.id.updateVersion);
+        TextView message = content.findViewById(R.id.updateMessage);
+        Button updateNow = content.findViewById(R.id.updateNowButton);
+        Button later = content.findViewById(R.id.updateLaterButton);
+
+        title.setText(current.forceUpdate ? R.string.update_required : R.string.update_available);
+        message.setText(current.forceUpdate
+                ? R.string.update_required_message
+                : R.string.update_available_message);
+        if (current.latestVersionName == null || current.latestVersionName.trim().isEmpty()) {
+            version.setVisibility(View.GONE);
+        } else {
+            version.setText(getString(R.string.version_label, current.latestVersionName));
         }
-        AlertDialog dialog = builder.create();
-        dialog.setCanceledOnTouchOutside(!current.forceUpdate);
-        dialog.setCancelable(!current.forceUpdate);
-        dialog.show();
+        later.setVisibility(current.forceUpdate ? View.GONE : View.VISIBLE);
+
+        updateDialog = new AlertDialog.Builder(this).setView(content).create();
+        updateDialog.setCancelable(!current.forceUpdate);
+        updateDialog.setCanceledOnTouchOutside(!current.forceUpdate);
+        updateNow.setOnClickListener(view -> {
+            updateDialog.dismiss();
+            updateDialog = null;
+            startUpdateDownload(current);
+        });
+        later.setOnClickListener(view -> {
+            updateDialog.dismiss();
+            updateDialog = null;
+        });
+        updateDialog.setOnDismissListener(dialog -> updateDialog = null);
+        updateDialog.show();
+
+        Window window = updateDialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            int screenWidth = getResources().getDisplayMetrics().widthPixels;
+            int dialogWidth = Math.min(screenWidth - dp(40), dp(420));
+            window.setLayout(dialogWidth, WindowManager.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
     private void startUpdateDownload(MobileAppConfig current) {

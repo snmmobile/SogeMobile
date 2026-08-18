@@ -1,6 +1,6 @@
 # SogeMobile
 
-A small Android app with a homepage button that opens Sogebanking in an integrated browser. Version 1.7 requires the phone's secure screen lock whenever the app opens or returns from the background. It offers strong biometrics where Android supports them and falls back to the phone PIN, pattern, or password. It also loads a signed remote configuration from the portfolio administration service. When the authenticated account dashboard is detected, the administrator can independently enable **view-only mode**, **sensitive-function blocking**, and a clearly marked temporary display override managed from the admin dashboard:
+A small Android app with a homepage button that opens Sogebanking in an integrated browser. Version 1.8 requires the phone's secure screen lock whenever the app opens or returns from the background. It offers strong biometrics where Android supports them and falls back to the phone PIN, pattern, or password. It also loads a signed remote configuration from the portfolio administration service. When the authenticated account dashboard is detected, the administrator can independently enable **view-only mode**, **sensitive-function blocking**, and a clearly marked temporary display override managed from the admin dashboard:
 
 The public Android application ID is `com.snmmobile.sogemobile`.
 
@@ -47,6 +47,8 @@ The private configuration-signing key belongs outside both repositories under `D
 ## In-app updates
 
 When the signed configuration advertises a higher `version_code`, SogeMobile warns the user about the update. After the user chooses **Download update**, the app downloads the APK directly into its private cache, verifies the signed-config SHA-256 digest, package ID, version code, and release signing certificate, then opens Android's system installer. Android 8 and later may first ask the user to allow installs from SogeMobile.
+
+The user-facing update prompt intentionally stays concise: it displays only whether the update is optional or required, the public version name when available, one short explanation, and the relevant actions. Release notes, hashes, and other verification details remain internal rather than overwhelming the user.
 
 Android requires the user to confirm the final installation on ordinary consumer devices. Silent installation is intentionally unavailable unless the app is a device owner/profile owner on a managed device. Failed, oversized, altered, wrong-package, wrong-version, or differently signed APKs are deleted and never passed to the installer.
 
