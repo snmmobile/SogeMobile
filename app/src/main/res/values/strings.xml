@@ -26,4 +26,11 @@
     <string name="sha256_label">SHA-256: %1$s</string>
     <string name="protected_browser">Dashboard</string>
     <string name="function_protection_mode">Function protection</string>
+    <string name="unlock_app">Unlock SogeMobile</string>
+    <string name="unlock_app_subtitle">Use your fingerprint, face, PIN, pattern, or phone password.</string>
+    <string name="use_screen_lock">Use screen lock</string>
+    <string name="screen_lock_required">Screen lock required</string>
+    <string name="screen_lock_required_message">Set up a secure PIN, pattern, password, or biometric lock before opening SogeMobile.</string>
+    <string name="open_security_settings">Open security settings</string>
+    <string name="password_manager_note">Android Password Manager can save and fill your login after you unlock the app. SogeMobile does not store your bank password.</string>
 </resources>

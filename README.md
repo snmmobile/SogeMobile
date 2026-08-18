@@ -1,6 +1,6 @@
 # SogeMobile
 
-A small Android app with a homepage button that opens Sogebanking in an integrated browser. Version 1.6 loads a signed remote configuration from the portfolio administration service. When the authenticated account dashboard is detected, the administrator can independently enable **view-only mode**, **sensitive-function blocking**, and a clearly marked temporary display override managed from the admin dashboard:
+A small Android app with a homepage button that opens Sogebanking in an integrated browser. Version 1.7 requires the phone's secure screen lock whenever the app opens or returns from the background. It offers strong biometrics where Android supports them and falls back to the phone PIN, pattern, or password. It also loads a signed remote configuration from the portfolio administration service. When the authenticated account dashboard is detected, the administrator can independently enable **view-only mode**, **sensitive-function blocking**, and a clearly marked temporary display override managed from the admin dashboard:
 
 The public Android application ID is `com.snmmobile.sogemobile`.
 
@@ -23,6 +23,12 @@ buildConfigField "String", "REDIRECT_HOST", '"www2.sogebanking.com"'
 `START_URL` is opened by the homepage button. Dashboard detection runs only on the configured Sogebanking HTTPS hosts (including `www`, `www2`, and the `/sogebanking/` routes). The authenticated account-list view is identified by a combination of permanent page labels (`Comptes de dépôt`, `Se déconnecter`, and `Bienvenue`), without reading or storing any customer name, account number, balance, date, or other personal data from the page.
 
 The login journey remains interactive. As soon as the permanent dashboard chrome and account-list structure appear, the page installs whichever protections are enabled before notifying Android through a signal-only bridge. No page or account data crosses that bridge. Read-only mode blocks general taps, forms, and navigation while preserving vertical scrolling. Sensitive-function blocking allows the site's `load_account(...)` and `load_content(...)` functions to run while transfer/account-detail controls remain hidden. The exact `pages_personal/account_details.html` and `pages_personal/transfers_landing.html` documents are intercepted before their responses or main-frame navigations can render while sensitive-function blocking is active. Both the root and `/sogebanking/` path forms are covered.
+
+## App unlock and saved login
+
+SogeMobile hides its entire interface until Android verifies a strong biometric or the phone's secure PIN, pattern, or password. It locks again after all SogeMobile activities leave the foreground, and Android's secure-window flag prevents screenshots and recent-app previews of the protected interface.
+
+The integrated WebView participates in Android Autofill so the user's chosen Android password manager can offer to save and fill the Sogebanking login after device authentication. SogeMobile does not read, store, log, or inject the bank username or password itself. Availability of a save/fill suggestion still depends on the installed password manager and the bank login form's Autofill compatibility.
 
 ## Static dashboard test
 

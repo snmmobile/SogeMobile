@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
 import android.webkit.CookieManager;
@@ -39,12 +40,35 @@ public final class BrowserActivity extends Activity {
     private MobileAppConfig config;
     private boolean dashboardDetected;
     private boolean staticDashboardTest;
+    private AppUnlockGate unlockGate;
+    private Bundle restoredState;
+    private boolean initialized;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_browser);
+
+        restoredState = savedInstanceState;
+        View protectedContent = findViewById(R.id.browserRoot);
+        protectedContent.setVisibility(View.INVISIBLE);
+        unlockGate = new AppUnlockGate(this, protectedContent, this::initializeBrowserIfNeeded);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        unlockGate.requireUnlock();
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private void initializeBrowserIfNeeded() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
 
         webView = findViewById(R.id.webView);
         progressBar = findViewById(R.id.progressBar);
@@ -71,11 +95,11 @@ public final class BrowserActivity extends Activity {
         webView.setWebViewClient(new LockedPageWebViewClient());
         webView.setOnLongClickListener(view -> dashboardDetected && config.readonlyEnabled);
 
-        if (savedInstanceState == null) {
+        if (restoredState == null) {
             loadInitialPage();
         } else {
-            dashboardDetected = savedInstanceState.getBoolean(STATE_DASHBOARD_DETECTED, false);
-            String currentUrl = savedInstanceState.getString(STATE_CURRENT_URL, config.startUrl);
+            dashboardDetected = restoredState.getBoolean(STATE_DASHBOARD_DETECTED, false);
+            String currentUrl = restoredState.getString(STATE_CURRENT_URL, config.startUrl);
             updateProtectionUi();
             if (staticDashboardTest) {
                 loadStaticDashboard();
@@ -89,17 +113,29 @@ public final class BrowserActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(STATE_DASHBOARD_DETECTED, dashboardDetected);
-        outState.putString(STATE_CURRENT_URL, webView.getUrl());
+        if (webView != null) {
+            outState.putString(STATE_CURRENT_URL, webView.getUrl());
+        }
     }
 
     @Override
     @SuppressWarnings("deprecation") // Native Activity compatibility for Android 6-12 without an AndroidX dependency.
     public void onBackPressed() {
-        if (!(dashboardDetected && config.readonlyEnabled) && webView.canGoBack()) {
+        if (webView != null && config != null
+                && !(dashboardDetected && config.readonlyEnabled) && webView.canGoBack()) {
             webView.goBack();
         } else {
             finish();
         }
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    protected void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
+        if (unlockGate != null && unlockGate.handleActivityResult(requestCode, resultCode)) {
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

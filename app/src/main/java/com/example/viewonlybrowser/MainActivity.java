@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -17,11 +18,35 @@ public final class MainActivity extends Activity {
     private TextView availabilityMessage;
     private MobileAppConfig config;
     private AlertDialog downloadDialog;
+    private AppUnlockGate unlockGate;
+    private boolean initialized;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_main);
+
+        View protectedContent = findViewById(R.id.mainRoot);
+        protectedContent.setVisibility(View.INVISIBLE);
+        unlockGate = new AppUnlockGate(this, protectedContent, this::onUnlocked);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        unlockGate.requireUnlock();
+    }
+
+    private void onUnlocked() {
+        if (!initialized) {
+            initialized = true;
+            initializeApp();
+        }
+        resumePendingInstall();
+    }
+
+    private void initializeApp() {
 
         openWebsiteButton = findViewById(R.id.openWebsiteButton);
         Button openStaticTestButton = findViewById(R.id.openStaticTestButton);
@@ -60,6 +85,12 @@ public final class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (AppUnlockSession.isUnlocked()) {
+            resumePendingInstall();
+        }
+    }
+
+    private void resumePendingInstall() {
         if (updateInstaller != null && config != null) {
             try {
                 updateInstaller.resumePendingInstall(this, config);
@@ -67,6 +98,15 @@ public final class MainActivity extends Activity {
                 showUpdateError(config);
             }
         }
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (unlockGate != null && unlockGate.handleActivityResult(requestCode, resultCode)) {
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override

@@ -1,6 +1,6 @@
 param(
     [string]$KeystorePath = "$env:USERPROFILE\Documents\apps\signing\sogemobile-release.jks",
-    [string]$DestinationPath = "$env:USERPROFILE\Documents\apps\SogeMobile-v1.6.apk"
+    [string]$DestinationPath = "$env:USERPROFILE\Documents\apps\SogeMobile-v1.7.apk"
 )
 
 $ErrorActionPreference = 'Stop'
